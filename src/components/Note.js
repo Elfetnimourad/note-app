@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import SearchIcon from "@mui/icons-material/Search";
 import { Grid, TextField } from "@mui/material";
 import "./Note.css";
@@ -25,16 +25,12 @@ export const Note = () => {
     return setArr(arr.filter((e) => e.title !== deleteOne));
   };
 
-  const searchNotes = () => {
-    const searchFilter = arr.filter((e) => e.title === search);
-    const notSearchFilter = arr.filter((e) => e.title !== search);
-    if (search !== "") {
-      setFilterArr(searchFilter);
-    } else {
-      setArr(notSearchFilter);
-    }
-  };
-
+  const memoArr = useMemo(() => {
+    if (!search) return arr;
+    return arr.filter((e) =>
+      e.title.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [arr, search]);
   const addNotes = () => {
     if (title.trim() !== "" && content.trim() !== "") {
       setArr([
@@ -77,10 +73,7 @@ export const Note = () => {
       </div>
       <Grid container>
         <Grid item xs={0.8} lg={0.3} className="grid-search">
-          <SearchIcon
-            className={mode ? "text-dark" : "text-dark"}
-            onClick={searchNotes}
-          />
+          <SearchIcon className={mode ? "text-dark" : "text-dark"} />
         </Grid>
         <Grid item xs={11.2} lg={11.7} className="grid-input">
           <input
@@ -89,7 +82,6 @@ export const Note = () => {
             className="w-100 input-style"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            onKeyDown={(event) => event.key === "Enter" && searchNotes()}
           />
         </Grid>
       </Grid>
@@ -128,105 +120,55 @@ export const Note = () => {
             </CardActions>
           </Card>
         </Grid>
-        {search === ""
-          ? arr
-              ?.sort((a, b) => b.timeLine - a.timeLine)
-              .map((e) => {
-                return (
-                  <>
-                    <Grid item>
-                      <Card
-                        sx={{
-                          width: 345,
-                          backgroundColor: "#fbc115",
-                          borderRadius: 3,
-                          height: 230,
-                        }}
+        {memoArr
+          ?.sort((a, b) => b.timeLine - a.timeLine)
+          .map((e) => {
+            return (
+              <>
+                <Grid item>
+                  <Card
+                    sx={{
+                      width: 345,
+                      backgroundColor: "#fbc115",
+                      borderRadius: 3,
+                      height: 230,
+                    }}
+                    className={mode ? "text-white" : "text-dark"}
+                  >
+                    <CardContent>
+                      <Typography gutterBottom variant="h4" component="div">
+                        {e.title}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
                         className={mode ? "text-white" : "text-dark"}
                       >
-                        <CardContent>
-                          <Typography gutterBottom variant="h4" component="div">
-                            {e.title}
-                          </Typography>
-                          <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            className={mode ? "text-white" : "text-dark"}
-                          >
-                            {e.content}
-                          </Typography>
-                        </CardContent>
-                        <CardActions>
-                          <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            className={mode ? "text-white" : "text-dark"}
-                          >
-                            {e.timeStamp}
-                          </Typography>
-
-                          <Button
-                            className="ms-auto"
-                            size="small"
-                            onClick={() => deleteNote(e.title)}
-                          >
-                            <DeleteIcon className="text-danger" />
-                          </Button>
-                        </CardActions>
-                      </Card>
-                    </Grid>
-                  </>
-                );
-              })
-          : filterArr
-              ?.sort((a, b) => b.timeLine - a.timeLine)
-              .map((e) => {
-                return (
-                  <>
-                    <Grid item>
-                      <Card
-                        sx={{
-                          width: 345,
-                          backgroundColor: "#fbc115",
-                          borderRadius: 3,
-                          height: 230,
-                        }}
+                        {e.content}
+                      </Typography>
+                    </CardContent>
+                    <CardActions>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
                         className={mode ? "text-white" : "text-dark"}
                       >
-                        <CardContent>
-                          <Typography gutterBottom variant="h4" component="div">
-                            {e.title}
-                          </Typography>
-                          <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            className={mode ? "text-white" : "text-dark"}
-                          >
-                            {e.content}
-                          </Typography>
-                        </CardContent>
-                        <CardActions>
-                          <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            className={mode ? "text-white" : "text-dark"}
-                          >
-                            {e.timeStamp}
-                          </Typography>
+                        {e.timeStamp}
+                      </Typography>
 
-                          <Button
-                            className="ms-auto"
-                            size="small"
-                            onClick={() => deleteNote(e.title)}
-                          >
-                            Delete
-                          </Button>
-                        </CardActions>
-                      </Card>
-                    </Grid>
-                  </>
-                );
-              })}
+                      <Button
+                        className="ms-auto"
+                        size="small"
+                        onClick={() => deleteNote(e.title)}
+                      >
+                        <DeleteIcon className="text-danger" />
+                      </Button>
+                    </CardActions>
+                  </Card>
+                </Grid>
+              </>
+            );
+          })}
       </Grid>
     </div>
   );
